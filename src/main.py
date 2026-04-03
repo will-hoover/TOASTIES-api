@@ -123,4 +123,4 @@ async def submit_preflight(room: int):
     return Response(status_code=204, headers=headers)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", log_level="info", reload=True, host="localhost", port=8000)
+    uvicorn.run("main:app", log_level="info", reload=True, host="10.117.37.14", port=8000)

@@ -15,7 +15,8 @@ def parse_scoresheet(writer: str, scores: Scoresheet, writer_stats: Dict[str, St
         writer_stats[name].played += len(scores.results)
     for question in scores.results:
         for buzz in question.buzzes:
-            writer_stats[buzz.player].add_buzz(buzz.points)
+            if buzz.player != "NO BUZZES":
+                writer_stats[buzz.player].add_buzz(buzz.points)
 
     if scores.reader != None:
         writer_stats[scores.reader] = Statline(name=scores.reader)
