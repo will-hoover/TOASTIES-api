@@ -19,6 +19,9 @@ class Scoresheet(BaseModel):
     def to_values_array(self):
         array = [["Question", "Answerer", "Points"]]
         for question in self.results:
+            if len(question.buzzes) == 0:
+                array.append([question.number, "NO BUZZES", 0])
+                continue
             for buzz in question.buzzes:
                 if buzz.player == question.buzzes[0].player:
                     array.append([question.number, buzz.player, buzz.points])
@@ -46,6 +49,7 @@ def scoresheet_from_values(vals: List[List[str]]):
             results.append(question)
         except:
             pass
+        
         question.buzzes.append(Buzz(player=vals[r][1], points=int(vals[r][2])))
         r += 1
     r += 1
