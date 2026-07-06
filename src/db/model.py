@@ -2,26 +2,28 @@ from pydantic import BaseModel
 
 class Player(BaseModel):
     _id: int
-    FirstName: str
-    LastName: str
+    first_name: str
+    last_name: str
+    last_toast: int
+
 
 class Toast(BaseModel):
-    Number: int
-    Name: str # "Butt3r3d Toast", etc.
-    Date: str # I don't feel like dealing with the datetime data type
-    TrashDay: bool
+    number: int
+    name: str # "Butt3r3d Toast", etc.
+    date: str # I don't feel like dealing with the datetime data type
+    trash_day: bool
 
 class Buzz(BaseModel):
-    Player: int
-    Points: int
+    player: int
+    points: int
 
 class Scoresheet(BaseModel):
-    Toast: int
-    Room: int
-    Writer: int
-    Reader: int
-    Roster: list[int]
-    Questions: list[list[Buzz]]
+    toast: int
+    room: int
+    writer: int
+    reader: int
+    roster: list[int]
+    questions: list[list[Buzz]]
 
 def validated_player(player):
     return Player(**player).model_dump()
