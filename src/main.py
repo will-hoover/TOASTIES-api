@@ -4,9 +4,11 @@ from contextvars import ContextVar
 from fastapi.responses import Response
 import uvicorn
 
-from db.model import Scoresheet
+import services.toasties_service as toasties
+from db.model import Scoresheet, Toast
 
-toast: ContextVar[int | None] = ContextVar(None)
+toastNum: ContextVar[int | None] = ContextVar(None)
+toastId: ContextVar[int | None] = ContextVar(None)
 
 app = FastAPI()
 
@@ -16,17 +18,27 @@ async def root():
 
 @app.get("/toast")
 async def current_toast(response: Response):
-    # TODO: return current toast number - add toast to db if context is empty
-    current = toast.get()
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    current = toastNum.get()
     if current is None:
-        # Do DB stuff
-        pass
+        return HTTPException(404, "Buttered Toast is not live. Please start a Toast.")
     return { "toast": current }
 
-@app.post("/end")
+@app.post("/start")
+async def start_toast(toast: Toast, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    new_id = toasties.start_toast(toast)
+    if new_id == -1:
+        return HTTPException(409, "Wrong toast number provided. Make sure you're not being stupid, then check database state.")
+    toastNum.set(toast.number)
+    toastId.set(new_id)
+    response.status_code = 201
+    return response
+
+@app.get("/end")
 async def finish_toast(response: Response):
-    # TODO: delete toast number from context
-    pass
+    toastNum.set(None)
+    toastId.set(None)
 
 @app.post("/addroom")
 async def addroom(response: Response):
@@ -43,7 +55,7 @@ async def room_stats(room_number: int, response: Response):
     # TODO: get stats for the given room number
     pass
 
-@app.get("combinedstats")
+@app.get("/combinedstats")
 async def combined_stats(response: Response):
     # TODO: get combined stats for all rooms
     pass

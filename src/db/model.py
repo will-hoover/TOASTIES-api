@@ -1,17 +1,18 @@
 from pydantic import BaseModel
+import datetime
 
 class Player(BaseModel):
     _id: int
-    first_name: str
-    last_name: str
-    last_toast: int
-
+    firstName: str
+    lastName: str
+    lastToast: int
 
 class Toast(BaseModel):
+    _id: int
     number: int
     name: str # "Butt3r3d Toast", etc.
-    date: str # I don't feel like dealing with the datetime data type
-    trash_day: bool
+    date: datetime
+    trashDay: bool
 
 class Buzz(BaseModel):
     player: int
