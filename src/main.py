@@ -1,14 +1,9 @@
 from fastapi import FastAPI, HTTPException
-from contextvars import ContextVar
-
 from fastapi.responses import Response
 import uvicorn
 
 import services.toasties_service as toasties
 from db.model import Scoresheet, Toast
-
-toastNum: ContextVar[int | None] = ContextVar(None)
-toastId: ContextVar[int | None] = ContextVar(None)
 
 app = FastAPI()
 
@@ -19,26 +14,28 @@ async def root():
 @app.get("/toast")
 async def current_toast(response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    current = toastNum.get()
+    current = toasties.get_live_toast()
     if current is None:
-        return HTTPException(404, "Buttered Toast is not live. Please start a Toast.")
-    return { "toast": current }
+        raise HTTPException(404, "Buttered Toast is not live. Please start a Toast.")
+    return current
 
 @app.post("/start")
 async def start_toast(toast: Toast, response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
     new_id = toasties.start_toast(toast)
     if new_id == -1:
-        return HTTPException(409, "Wrong toast number provided. Make sure you're not being stupid, then check database state.")
-    toastNum.set(toast.number)
-    toastId.set(new_id)
+        raise HTTPException(409, "That Toast already happened!")
     response.status_code = 201
-    return response
+    return { "number": toast.number, "id": str(new_id) }
 
-@app.get("/end")
-async def finish_toast(response: Response):
-    toastNum.set(None)
-    toastId.set(None)
+@app.post("/end/{id}")
+async def finish_toast(id: str, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    code = toasties.end_toast(id)
+    if code == -1:
+        raise HTTPException(409, "Specified toast is not currently live")
+    if code == 0:
+        raise HTTPException(500, "Update failed")
 
 @app.post("/addroom")
 async def addroom(response: Response):
