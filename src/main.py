@@ -50,14 +50,13 @@ async def addroom(id: str, response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
     code = toasties.add_room(id)
     if code == -1:
-        return HTTPException(409, "Cannot add a room to an archived Toast")
+        raise HTTPException(409, "Cannot add a room to an archived Toast")
     if code == 0:
-        return HTTPException(404, "Toast does not exist")
+        raise HTTPException(404, "Toast does not exist")
     rooms = toasties.get_rooms(id)
     return {
         "rooms": rooms
     }
-
 
 @app.get("/stats/{room_number}")
 async def room_stats(room_number: int, response: Response):
