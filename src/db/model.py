@@ -18,6 +18,7 @@ class Toast(BaseModel):
     name: str # "Butt3r3d Toast", etc.
     date: datetime
     content: str # Trash or Academic
+    rooms: int = 0
     live: bool = False
 
 class Buzz(BaseModel):

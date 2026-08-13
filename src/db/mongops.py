@@ -79,6 +79,38 @@ def end_toast(id: str) -> bool:
     client.close()
     return result.matched_count == 1
 
+def get_rooms(id: str) -> int:
+    """
+    Get the number of rooms in the specified toast
+    """
+    client, db = connect()
+    toasts = db[TOASTS]
+    pipeline = [
+        {"$match": {
+            "_id": ObjectId(id)
+        }},
+        {"$project": {
+            "_id": 0,
+            "rooms": 1
+        }}
+    ]
+    result = toasts.aggregate(pipeline).to_list()
+    client.close()
+    return result[0]
+
+def add_room(id: str) -> bool:
+    """
+    Add a room to the specified toast
+    """
+    client, db = connect()
+    toasts = db[TOASTS]
+    result = toasts.update_one(
+        {"_id": ObjectId(id)},
+        {"$inc": {"rooms": 1}}
+    )
+    client.close()
+    return result.matched_count == 1
+
 if __name__ == "__main__":
     client, db = connect()
     db.create_collection()

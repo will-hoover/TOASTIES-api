@@ -33,3 +33,22 @@ def end_toast(id: str) -> int:
     if updated:
         return 1
     return 0
+
+def get_rooms(id: str) -> int:
+    """
+    Get the number of rooms for the specified toast
+    """
+    result = mongops.get_rooms(id)
+    return result['rooms']
+
+def add_room(id: str) -> int:
+    """
+    Add a room to the specified toast
+    """
+    live = mongops.get_live_toast()
+    if live is None or id != Toast.model_validate(live).id:
+        return -1
+    updated = mongops.add_room(id)
+    if updated:
+        return 1
+    return 0

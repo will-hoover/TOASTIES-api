@@ -37,15 +37,27 @@ async def finish_toast(id: str, response: Response):
     if code == 0:
         raise HTTPException(500, "Update failed")
 
-@app.post("/addroom")
-async def addroom(response: Response):
-    # TODO: increment room count for this toast
-    pass
+@app.get("/rooms/{id}")
+async def rooms(id: str, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    rooms = toasties.get_rooms(id)
+    return {
+        "rooms": rooms
+    }
 
-@app.get("/rooms")
-async def rooms(response: Response):
-    # TODO: get number of rooms for this toast
-    pass
+@app.post("/addroom/{id}")
+async def addroom(id: str, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    code = toasties.add_room(id)
+    if code == -1:
+        return HTTPException(409, "Cannot add a room to an archived Toast")
+    if code == 0:
+        return HTTPException(404, "Toast does not exist")
+    rooms = toasties.get_rooms(id)
+    return {
+        "rooms": rooms
+    }
+
 
 @app.get("/stats/{room_number}")
 async def room_stats(room_number: int, response: Response):
