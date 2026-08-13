@@ -1,4 +1,5 @@
 import db.mongops as mongops
+import db.scops as scops
 from db.model import Toast, Player, Scoresheet
 import datetime
 
@@ -52,3 +53,15 @@ def add_room(id: str) -> int:
     if updated:
         return 1
     return 0
+
+def add_scoresheet(scoresheet: Scoresheet) -> int:
+    """
+    Add a scoresheet to the database
+    """
+    live = mongops.get_live_toast()
+    if live is None or scoresheet.toast != Toast.model_validate(live).id:
+        return -1
+    id = mongops.add_scoresheet(scoresheet)
+    if id is None:
+        return 0
+    return 1

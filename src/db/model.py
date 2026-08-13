@@ -8,6 +8,7 @@ PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if isinstance(v, Ob
 
 class Player(BaseModel):
     id: PyObjectId = Field(alias="_id")
+    alias: str
     firstName: str
     lastName: str
     lastToast: int
@@ -33,6 +34,7 @@ class Scoresheet(BaseModel):
     reader: int
     roster: list[int]
     questions: list[list[Buzz]]
+    timestamp: datetime = datetime.now() # required for most recent roster call
 
 def validated_player(player):
     return Player(**player).model_dump()

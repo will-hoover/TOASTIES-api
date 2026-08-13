@@ -14,6 +14,7 @@ URI = "mongodb://localhost:27017/"
 DB_NAME = "toaster"
 
 TOASTS = "Toasts"
+SCORESHEETS = "Scoresheets"
 
 def connect():
     """
@@ -110,6 +111,19 @@ def add_room(id: str) -> bool:
     )
     client.close()
     return result.matched_count == 1
+
+# Scoresheet operations - TODO: move to different file?
+
+def add_scoresheet(s: Scoresheet):
+    """
+    Add a scoresheet to the database
+    """
+    client, db = connect()
+    sc = db[SCORESHEETS]
+    s = s.model_dump(by_alias=True, exclude_none=True)
+    result = sc.insert_one(s)
+    client.close()
+    return result.inserted_id
 
 if __name__ == "__main__":
     client, db = connect()

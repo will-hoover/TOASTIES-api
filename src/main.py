@@ -58,6 +58,14 @@ async def addroom(id: str, response: Response):
         "rooms": rooms
     }
 
+@app.post("/submitpacket")
+async def add_scoresheet(results: Scoresheet, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    code = toasties.add_scoresheet(results)
+    if code == -1:
+        raise HTTPException(409, "Specified Toast is not live")
+    response.status_code = 201
+
 @app.get("/stats/{room_number}")
 async def room_stats(room_number: int, response: Response):
     # TODO: get stats for the given room number
@@ -66,12 +74,6 @@ async def room_stats(room_number: int, response: Response):
 @app.get("/combinedstats")
 async def combined_stats(response: Response):
     # TODO: get combined stats for all rooms
-    pass
-
-@app.post("/submitpacket/{room}")
-async def add_scoresheet(room: int, results: Scoresheet, response: Response):
-    # TODO: add provided scoresheet to the database
-    # TODO: part 2: figure out if we can use the db Scoresheet model for this api call
     pass
 
 @app.get("/roster/{room}")
