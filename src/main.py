@@ -1,12 +1,9 @@
 from fastapi import FastAPI, HTTPException
-from contextvars import ContextVar
-
 from fastapi.responses import Response
 import uvicorn
 
-from db.model import Scoresheet
-
-toast: ContextVar[int | None] = ContextVar(None)
+import services.toasties_service as toasties
+from db.model import Scoresheet, Toast
 
 app = FastAPI()
 
@@ -16,17 +13,29 @@ async def root():
 
 @app.get("/toast")
 async def current_toast(response: Response):
-    # TODO: return current toast number - add toast to db if context is empty
-    current = toast.get()
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    current = toasties.get_live_toast()
     if current is None:
-        # Do DB stuff
-        pass
-    return { "toast": current }
+        raise HTTPException(404, "Buttered Toast is not live. Please start a Toast.")
+    return current
 
-@app.post("/end")
-async def finish_toast(response: Response):
-    # TODO: delete toast number from context
-    pass
+@app.post("/start")
+async def start_toast(toast: Toast, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    new_id = toasties.start_toast(toast)
+    if new_id == -1:
+        raise HTTPException(409, "That Toast already happened!")
+    response.status_code = 201
+    return { "number": toast.number, "id": str(new_id) }
+
+@app.post("/end/{id}")
+async def finish_toast(id: str, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    code = toasties.end_toast(id)
+    if code == -1:
+        raise HTTPException(409, "Specified toast is not currently live")
+    if code == 0:
+        raise HTTPException(500, "Update failed")
 
 @app.post("/addroom")
 async def addroom(response: Response):
@@ -43,7 +52,7 @@ async def room_stats(room_number: int, response: Response):
     # TODO: get stats for the given room number
     pass
 
-@app.get("combinedstats")
+@app.get("/combinedstats")
 async def combined_stats(response: Response):
     # TODO: get combined stats for all rooms
     pass

@@ -1,23 +1,31 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, BeforeValidator, Field
+from datetime import datetime
+from typing import Annotated
+from bson import ObjectId
+
+# Custom type that converts BSON ObjectId to str automatically
+PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if isinstance(v, ObjectId) else v)]
 
 class Player(BaseModel):
-    _id: int
-    first_name: str
-    last_name: str
-    last_toast: int
-
+    id: PyObjectId = Field(alias="_id")
+    firstName: str
+    lastName: str
+    lastToast: int
 
 class Toast(BaseModel):
+    id: PyObjectId = Field(None, alias="_id")
     number: int
     name: str # "Butt3r3d Toast", etc.
-    date: str # I don't feel like dealing with the datetime data type
-    trash_day: bool
+    date: datetime
+    content: str # Trash or Academic
+    live: bool = False
 
 class Buzz(BaseModel):
     player: int
     points: int
 
 class Scoresheet(BaseModel):
+    id: PyObjectId = Field(alias="_id")
     toast: int
     room: int
     writer: int
