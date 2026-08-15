@@ -59,3 +59,15 @@ async def get_scoresheets_by_toast(
 
     result = await sc.find(filter).to_list()
     return result
+
+async def get_last_scoresheet(toast: str, room: int):
+    """
+    Get the scoresheet for the previous packet in this room
+    """
+    sc = db[SCORESHEETS]
+    filter = {
+        "toast": toast,
+        "room": room
+    }
+    result = await sc.find(filter).sort({"timestamp": -1}).limit(1).to_list()
+    return result

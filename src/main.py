@@ -3,7 +3,8 @@ from fastapi.responses import Response
 import uvicorn
 
 import services.toasties_service as toasties
-from db.model import Scoresheet, Toast
+import services.pantry_service as pantry
+from db.model import Scoresheet, Toast, Player
 from db.db import lifespan
 
 app = FastAPI(lifespan=lifespan)
@@ -87,13 +88,26 @@ async def combined_stats(response: Response):
 
 @app.get("/roster/{room}")
 async def get_last_roster(room: int, response: Response):
-    # TODO: get the roster for the most recent game in this room
-    pass
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    roster = await toasties.get_last_roster(room)
+    if roster is None:
+        response.status_code = 204
+        return
+    return roster
 
 @app.post("/pantry/loadsheet")
 async def load_sheet(ids: dict):
     # We shouldn't need this one
     pass
+
+@app.post("/pantry/player")
+async def add_player(player: Player, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    pid = await pantry.add_player(player)
+    response.status_code = 201
+    return {
+        "id": pid
+    }
 
 if __name__ == "__main__":
     uvicorn.run("main:app", log_level="info", reload=True, host="localhost", port=8000)

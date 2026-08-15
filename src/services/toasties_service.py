@@ -1,6 +1,6 @@
 import db.toastops as toastops
 import db.scops as scops
-from db.model import Toast, Player, Scoresheet
+from db.model import Toast, Scoresheet
 import utils.anal as anal
 import datetime
 
@@ -88,3 +88,17 @@ async def get_live_stats(room: int | None = None):
     for i in range(len(scoresheets)):
         scoresheets[i] = Scoresheet.model_validate(scoresheets[i])
     return anal.compile_stats(scoresheets)
+
+async def get_last_roster(room: int):
+    """
+    Get the roster for the most recent game in the specified toast/room
+    """
+    live = await toastops.get_live_toast()
+    if live is None:
+            return None
+    toast = Toast.model_validate(live).id
+
+    last_sc = await scops.get_last_scoresheet(toast, room)
+    if len(last_sc) == 0:
+        return None
+    return Scoresheet.model_validate(last_sc[0]).roster

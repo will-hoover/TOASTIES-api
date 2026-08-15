@@ -8,7 +8,6 @@ PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if isinstance(v, Ob
 
 class Player(BaseModel):
     id: PyObjectId = Field(alias="_id")
-    alias: str
     firstName: str
     lastName: str
     lastToast: int
@@ -69,9 +68,6 @@ class Statline(BaseModel):
         self.negs += stats.negs
         self.read += stats.read
         self.written += stats.written
-
-    def to_data_row(self):
-        return [self.name, self.played, self.powers, self.gets, self.negs, self.written, self.read, self.ppg(), self.points()]
 
 def validated_player(player):
     return Player(**player).model_dump()
