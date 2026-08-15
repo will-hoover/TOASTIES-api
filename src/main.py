@@ -61,7 +61,7 @@ async def addroom(id: str, response: Response):
         "rooms": rooms
     }
 
-@app.post("/submitpacket")
+@app.post("/scoresheet")
 async def add_scoresheet(results: Scoresheet, response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
     code = await toasties.add_scoresheet(results)
@@ -71,33 +71,29 @@ async def add_scoresheet(results: Scoresheet, response: Response):
 
 @app.get("/stats/{room_number}")
 async def room_stats(room_number: int, response: Response):
-    # TODO: get stats for the given room number
-    pass
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    stats = await toasties.get_live_stats(room_number)
+    if stats == None:
+        raise HTTPException(404, "Buttered Toast is not live")
+    return stats
 
-@app.get("/combinedstats")
+@app.get("/stats")
 async def combined_stats(response: Response):
-    # TODO: get combined stats for all rooms
-    pass
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    stats = await toasties.get_live_stats()
+    if stats == None:
+        raise HTTPException(404, "Buttered Toast is not live")
+    return stats
 
 @app.get("/roster/{room}")
 async def get_last_roster(room: int, response: Response):
     # TODO: get the roster for the most recent game in this room
     pass
 
-@app.post("/loadsheets")
-async def load_sheets(ids: dict):
+@app.post("/pantry/loadsheet")
+async def load_sheet(ids: dict):
     # We shouldn't need this one
     pass
-
-@app.options("/submitpacket/{room}")
-async def submit_preflight(room: int):
-    # This is silly API POST stuff I don't quite understand
-    headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, GET, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': '*'
-    }
-    return Response(status_code=204, headers=headers)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", log_level="info", reload=True, host="localhost", port=8000)

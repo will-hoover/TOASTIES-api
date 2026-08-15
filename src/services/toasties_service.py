@@ -1,6 +1,7 @@
 import db.toastops as toastops
 import db.scops as scops
 from db.model import Toast, Player, Scoresheet
+import utils.anal as anal
 import datetime
 
 async def start_toast(toast: Toast):
@@ -63,7 +64,27 @@ async def add_scoresheet(scoresheet: Scoresheet) -> int:
     live = await toastops.get_live_toast()
     if live is None or scoresheet.toast != Toast.model_validate(live).id:
         return -1
-    id = await toastops.add_scoresheet(scoresheet)
+    prev_id = await scops.check_scoresheet_present(scoresheet)
+    if prev_id != None:
+        await scops.update_scoresheet(prev_id, scoresheet)
+        return 1
+    id = await scops.add_scoresheet(scoresheet)
     if id is None:
         return 0
     return 1
+
+async def get_live_stats(room: int | None = None):
+    """
+    Obtain a live stats report
+    """
+    live = await toastops.get_live_toast()
+    if live is None:
+            return None
+
+    id = Toast.model_validate(live).id
+    scoresheets = await scops.get_scoresheets_by_toast(id, room)
+    if len(scoresheets) == 0:
+        return dict()
+    for i in range(len(scoresheets)):
+        scoresheets[i] = Scoresheet.model_validate(scoresheets[i])
+    return anal.compile_stats(scoresheets)
