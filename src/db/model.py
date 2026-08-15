@@ -7,7 +7,7 @@ from bson import ObjectId
 PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if isinstance(v, ObjectId) else v)]
 
 class Player(BaseModel):
-    id: PyObjectId = Field(alias="_id")
+    id: PyObjectId = Field(None, alias="_id")
     firstName: str
     lastName: str
     lastToast: int

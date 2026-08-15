@@ -109,7 +109,7 @@ async def add_player(player: Player, response: Response):
     }
 
 @app.get("/pantry/players")
-async def get_players(played_since: int | None, response: Response):
+async def get_players(response: Response, played_since: int | None = None):
     response.headers['Access-Control-Allow-Origin'] = "*"
     players = await pantry.get_players(played_since)
     return players
