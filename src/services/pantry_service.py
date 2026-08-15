@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 import db.toastops as toastops
 import db.scops as scops
 import db.plops as plops
@@ -21,3 +22,12 @@ async def get_players(played_since: int | None = None):
         players[i] = Player.model_validate(players[i])
 
     return players
+
+async def get_toasts(content: str | None = None):
+    """
+    Retrieve all toasts; optionally specify trash or academic
+    """
+    toasts = await toastops.get_toasts(content)
+    for i in range(len(toasts)):
+        toasts[i] = Toast.model_validate(toasts[i])
+    return toasts

@@ -84,6 +84,17 @@ async def add_room(id: str) -> bool:
     )
     return result.matched_count == 1
 
+async def get_toasts(content: str | None = None):
+    """
+    Return all toasts; optionally specify trash or academic
+    """
+    toasts = db[TOASTS]
+    filter = dict()
+    if content != None:
+        filter["content"] = content
+    all_toasts = await toasts.find(filter).sort({"date": -1}).to_list()
+    return all_toasts
+
 if __name__ == "__main__":
     db.create_collection()
     print("Success")

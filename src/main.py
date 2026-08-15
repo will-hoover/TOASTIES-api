@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
+from typing import Literal
 import uvicorn
 
 import services.toasties_service as toasties
@@ -113,6 +114,12 @@ async def get_players(response: Response, played_since: int | None = None):
     response.headers['Access-Control-Allow-Origin'] = "*"
     players = await pantry.get_players(played_since)
     return players
+
+@app.get("/pantry/toasts")
+async def get_toasts(response: Response, content: Literal["Academic", "Trash"] | None = None):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    toasts = await pantry.get_toasts(content)
+    return toasts
 
 if __name__ == "__main__":
     uvicorn.run("main:app", log_level="info", reload=True, host="localhost", port=8000)
