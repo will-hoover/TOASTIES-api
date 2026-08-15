@@ -11,3 +11,13 @@ async def add_player(player: Player):
     """
     id = await plops.add_player(player)
     return str(id)
+
+async def get_players(played_since: int | None = None):
+    """
+    Retrieve all players; optionally filter by recency
+    """
+    players = await plops.get_players(played_since)
+    for i in range(len(players)):
+        players[i] = Player.model_validate(players[i])
+
+    return players

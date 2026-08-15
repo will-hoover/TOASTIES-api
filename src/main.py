@@ -91,8 +91,7 @@ async def get_last_roster(room: int, response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
     roster = await toasties.get_last_roster(room)
     if roster is None:
-        response.status_code = 204
-        return
+        return []
     return roster
 
 @app.post("/pantry/loadsheet")
@@ -108,6 +107,12 @@ async def add_player(player: Player, response: Response):
     return {
         "id": pid
     }
+
+@app.get("/pantry/players")
+async def get_players(played_since: int | None, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    players = await pantry.get_players(played_since)
+    return players
 
 if __name__ == "__main__":
     uvicorn.run("main:app", log_level="info", reload=True, host="localhost", port=8000)
