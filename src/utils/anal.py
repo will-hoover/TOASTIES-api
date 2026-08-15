@@ -27,6 +27,8 @@ class PacketStats:
         for player in new.stats:
             if player not in self.stats:
                 self.stats[player] = Statline(name=player)
+            if self.stats[player].written > 0 and new.stats[player].written > 0:
+                continue
             self.stats[player].add_stats(new.stats[player])
 
     def sorted_stats(self):
