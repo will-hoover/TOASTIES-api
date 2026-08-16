@@ -74,17 +74,24 @@ async def add_scoresheet(results: Scoresheet, response: Response):
 @app.get("/stats/{room_number}")
 async def room_stats(room_number: int, response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    stats = await toasties.get_live_stats(room_number)
+    stats = await toasties.get_stats(room=room_number)
     if stats == None:
         raise HTTPException(404, "Buttered Toast is not live")
     return stats
 
+@app.get("/pantry/stats/{toast}")
 @app.get("/stats")
-async def combined_stats(response: Response):
+async def combined_stats(response: Response, toast: str | None = None):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    stats = await toasties.get_live_stats()
+    stats = await toasties.get_stats(toast=toast)
     if stats == None:
         raise HTTPException(404, "Buttered Toast is not live")
+    return stats
+
+@app.get("/pantry/stats")
+async def get_all_stats(content: Literal["Academic", "Trash"], response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    stats = await pantry.get_all_stats(content)
     return stats
 
 @app.get("/roster/{room}")

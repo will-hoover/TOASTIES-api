@@ -31,3 +31,16 @@ async def get_toasts(content: str | None = None):
     for i in range(len(toasts)):
         toasts[i] = Toast.model_validate(toasts[i])
     return toasts
+
+async def get_all_stats(content: str):
+    """
+    Get trash or academic all-time stats
+    """
+    toasts = await toastops.get_toasts(content)
+    ids = [
+        Toast.model_validate(t).id for t in toasts
+    ]
+    scoresheets = await scops.get_scoresheets_from_subset(ids)
+    for i in range(len(scoresheets)):
+        scoresheets[i] = Scoresheet.model_validate(scoresheets[i])
+    return anal.compile_stats(scoresheets)

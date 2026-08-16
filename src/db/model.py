@@ -68,12 +68,3 @@ class Statline(BaseModel):
         self.negs += stats.negs
         self.read += stats.read
         self.written += stats.written
-
-def validated_player(player):
-    return Player(**player).model_dump()
-
-def validated_toast(toast):
-    return Toast(**toast).model_dump()
-
-def validated_scoresheet(scoresheet):
-    return Scoresheet(scoresheet).model_dump()

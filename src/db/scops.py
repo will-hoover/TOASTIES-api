@@ -71,3 +71,14 @@ async def get_last_scoresheet(toast: str, room: int):
     }
     result = await sc.find(filter).sort({"timestamp": -1}).limit(1).to_list()
     return result
+
+async def get_scoresheets_from_subset(subset: list[str]):
+    """
+    Retrieve all scoresheets from the provided toasts
+    """
+    sc = db[SCORESHEETS]
+    filter = {
+        "toast": {"$in": subset}
+    }
+    result = await sc.find(filter).to_list()
+    return result

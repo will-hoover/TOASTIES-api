@@ -73,16 +73,17 @@ async def add_scoresheet(scoresheet: Scoresheet) -> int:
         return 0
     return 1
 
-async def get_live_stats(room: int | None = None):
+async def get_stats(toast: str | None = None, room: int | None = None):
     """
     Obtain a live stats report
     """
-    live = await toastops.get_live_toast()
-    if live is None:
-            return None
+    if toast == None:
+        live = await toastops.get_live_toast()
+        if live is None:
+                return None
+        toast = Toast.model_validate(live).id
 
-    id = Toast.model_validate(live).id
-    scoresheets = await scops.get_scoresheets_by_toast(id, room)
+    scoresheets = await scops.get_scoresheets_by_toast(toast, room)
     if len(scoresheets) == 0:
         return dict()
     for i in range(len(scoresheets)):

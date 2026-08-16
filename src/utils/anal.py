@@ -8,12 +8,14 @@ class PacketStats:
 
     def __init__(self, s: Scoresheet, overall = False):
         self.writer = s.writer
+        self.room = s.room
         if overall:
             self.writer = "Overall"
         self.stats : dict[str, Statline] = dict()
         questions = len(s.questions)
 
-        self.stats[s.writer] = Statline(name=s.writer, written=questions)
+        if self.room == 1:
+            self.stats[s.writer] = Statline(name=s.writer, written=questions)
         if s.reader != None:
             self.stats[s.reader] = Statline(name=s.reader, read=questions)
         for player in s.roster:
@@ -27,7 +29,7 @@ class PacketStats:
         for player in new.stats:
             if player not in self.stats:
                 self.stats[player] = Statline(name=player)
-            if self.stats[player].written > 0 and new.stats[player].written > 0:
+            if new.room != 1 and new.stats[player].written > 0:
                 continue
             self.stats[player].add_stats(new.stats[player])
 
