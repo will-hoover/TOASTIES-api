@@ -2,7 +2,7 @@
 Analysis functions for reading scoresheets and combining stats.
 """
 
-from db.model import Scoresheet, Statline
+from db.model import Scoresheet, Statline, OverallStatline
 
 class PacketStats:
 
@@ -59,3 +59,22 @@ def compile_stats(scoresheets: list[Scoresheet]):
             stat_dict[s.writer] = pack_stats
 
     return {key: stat_dict[key].sorted_stats() for key in stat_dict}
+
+def player_stats(player: str, scoresheets: list[Scoresheet]):
+    """
+    Return player statlines for each toast
+    """
+    stat_dict: dict[str, Statline] = {}
+
+    for s in scoresheets:
+        if s.toast not in stat_dict:
+            stat_dict[s.toast] = Statline(name=player)
+        stat_dict[s.toast].add_stats(s.player_statline(player))
+
+    overall = OverallStatline(name=player)
+    for toast in stat_dict:
+        overall.add_stats(stat_dict[toast])
+    stat_dict["Overall"] = overall
+    return stat_dict
+    
+        

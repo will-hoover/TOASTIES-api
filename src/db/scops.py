@@ -82,3 +82,20 @@ async def get_scoresheets_from_subset(subset: list[str]):
     }
     result = await sc.find(filter).to_list()
     return result
+
+async def get_scoresheets_by_player(player: str, toasts: list[str] | None = None):
+    """
+    Get every scoresheet in which the specified player participated
+    """
+    sc = db[SCORESHEETS]
+    filter = {
+        "$or": [
+            {"roster": player},
+            {"reader": player},
+            {"writer": player}
+        ]
+    }
+    if toasts != None:
+        filter["toast"] = {"$in": toasts}
+    result = await sc.find(filter).to_list()
+    return result

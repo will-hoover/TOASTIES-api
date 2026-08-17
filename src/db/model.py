@@ -35,6 +35,18 @@ class Scoresheet(BaseModel):
     questions: list[list[Buzz]]
     timestamp: datetime = datetime.now() # required for most recent roster call
 
+    def player_statline(self, player: str) -> Statline:
+        if self.writer == player and self.room == 1:
+            return Statline(name=player, written=len(self.questions))
+        if self.reader == player:
+            return Statline(name=player, read=len(self.questions))
+        stats = Statline(name=player, played=len(self.questions))
+        for q in self.questions:
+            for b in q:
+                if b.player == player:
+                    stats.add_buzz(b.points)
+        return stats
+    
 class Statline(BaseModel):
     name: str
     played: int = 0
@@ -68,3 +80,10 @@ class Statline(BaseModel):
         self.negs += stats.negs
         self.read += stats.read
         self.written += stats.written
+
+class OverallStatline(Statline):
+    tournaments: int = 0
+
+    def add_stats(self, stats):
+        self.tournaments += 1
+        super().add_stats(stats)

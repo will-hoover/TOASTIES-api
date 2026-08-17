@@ -1,4 +1,3 @@
-from pydantic import BaseModel
 import db.toastops as toastops
 import db.scops as scops
 import db.plops as plops
@@ -44,3 +43,12 @@ async def get_all_stats(content: str):
     for i in range(len(scoresheets)):
         scoresheets[i] = Scoresheet.model_validate(scoresheets[i])
     return anal.compile_stats(scoresheets)
+
+async def get_player_stats(player: str):
+    """
+    Get historic stats for a single player
+    """
+    scoresheets = await scops.get_scoresheets_by_player(player)
+    for i in range(len(scoresheets)):
+            scoresheets[i] = Scoresheet.model_validate(scoresheets[i])
+    return anal.player_stats(player, scoresheets)

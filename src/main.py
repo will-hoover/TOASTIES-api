@@ -128,5 +128,11 @@ async def get_toasts(response: Response, content: Literal["Academic", "Trash"] |
     toasts = await pantry.get_toasts(content)
     return toasts
 
+@app.get("/pantry/playerstats/{player}")
+async def get_player_stats(player: str, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    player_stats = await pantry.get_player_stats(player)
+    return player_stats
+
 if __name__ == "__main__":
     uvicorn.run("main:app", log_level="info", reload=True, host="localhost", port=8000)
