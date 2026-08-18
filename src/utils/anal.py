@@ -1,68 +1,59 @@
 """
 Analysis functions for reading scoresheets and combining stats.
-File name is in homage to RIT Quiz Bowl traditions and the previous stats analysis tool.
 """
 
-from typing import List, Dict
-from utils.types import Scoresheet, Statline, scoresheet_from_values
+from db.model import Scoresheet, Statline
 
-def parse_scoresheet(writer: str, scores: Scoresheet, writer_stats: Dict[str, Statline]):
+class PacketStats:
+
+    def __init__(self, s: Scoresheet, overall = False):
+        self.writer = s.writer
+        if overall:
+            self.writer = "Overall"
+        self.stats : dict[str, Statline] = dict()
+        questions = len(s.questions)
+
+        self.stats[s.writer] = Statline(name=s.writer, written=questions)
+        if s.reader != None:
+            self.stats[s.reader] = Statline(name=s.reader, read=questions)
+        for player in s.roster:
+            self.stats[player] = Statline(name=player, played=questions)
+
+        for q in s.questions:
+            for b in q:
+                self.stats[b.player].add_buzz(b.points)
+
+    def merge_stats(self, new: PacketStats):
+        for player in new.stats:
+            if player not in self.stats:
+                self.stats[player] = Statline(name=player)
+            if self.stats[player].written > 0 and new.stats[player].written > 0:
+                continue
+            self.stats[player].add_stats(new.stats[player])
+
+    def sorted_stats(self):
+        def points_key(s: Statline):
+                return s.points()
+        
+        return sorted([self.stats[player] for player in self.stats], reverse=True, key=points_key)
+
+def compile_stats(scoresheets: list[Scoresheet]):
     """
-    Parses a scoresheet object into a dictionary of player statlines for the packet.
+    Return sorted statline lists for each packet and overall results
     """
-    for name in scores.roster:
-        writer_stats[name] = Statline(name=name)
-        writer_stats[name].played += len(scores.results)
-    for question in scores.results:
-        for buzz in question.buzzes:
-            if buzz.player != "NO BUZZES":
-                writer_stats[buzz.player].add_buzz(buzz.points)
+    stat_dict : dict[str, PacketStats] = {
+        "Overall": None
+    }
 
-    if scores.reader != None:
-        writer_stats[scores.reader] = Statline(name=scores.reader)
-        writer_stats[scores.reader].read += len(scores.results)
+    for s in scoresheets:
+        pack_stats = PacketStats(s)
+        if stat_dict["Overall"] == None:
+            stat_dict["Overall"] = PacketStats(s, True)
+        else:
+            stat_dict["Overall"].merge_stats(pack_stats)
+        if s.writer in stat_dict:
+            stat_dict[s.writer].merge_stats(pack_stats)
+        else:
+            stat_dict[s.writer] = pack_stats
 
-    if writer not in writer_stats:
-        writer_stats[writer] = Statline(name=writer)
-        writer_stats[writer].written = len(scores.results)
-
-def merge_stats(stats_list: List[Dict[str, Statline]]):
-    """
-    Creates a single list of player-statline objects that represent the overall stats
-    from each input list.
-    """
-    overall_stats = dict()
-    for statsheet in stats_list:
-        for player in statsheet:
-            if player not in overall_stats:
-                overall_stats[player] = Statline(name=player)
-            overall_stats[player].add_stats(statsheet[player])
-    
-    return overall_stats
-
-def scoresheet_anal(writers: list, scoresheets_list: list, rooms=1):
-    """
-    Takes a list of writers and list of scoresheets in nested array form from sheets API return and 
-    parses them into a list of player stats dictionaries for each packet. Returns a list of sorted lists
-    of player statlines.
-    - Each scoresheet array is read into a Scoresheet object before individual parsing
-    - If rooms is greater than 1, this will combine the stats for the same packet read in multiple rooms. 
-    """
-    def points_key(s: Statline):
-        return s.points()
-
-    writer_stats_list = []
-    for i in range(len(writers)):
-        writer_stats = dict()
-        for j in range(rooms):
-            scoresheet = scoresheet_from_values(scoresheets_list[j][i])
-            parse_scoresheet(writers[i], scoresheet, writer_stats)
-        writer_stats_list.append(writer_stats)
-
-    overall = merge_stats(writer_stats_list)
-
-    full_stats = [sorted([overall[player] for player in overall], reverse=True, key=points_key)]
-    for statsheet in writer_stats_list:
-        full_stats.append(sorted([statsheet[player] for player in statsheet], reverse=True, key=points_key))
-
-    return full_stats
+    return {key: stat_dict[key].sorted_stats() for key in stat_dict}

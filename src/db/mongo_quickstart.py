@@ -12,10 +12,10 @@ DB_NAME = "toaster"
 if __name__ == "__main__":
     client = pymongo.MongoClient(URI)
     db = client[DB_NAME]
-    db.drop_collection("Players")
+    # db.drop_collection("Players")
     db.drop_collection("Toasts")
     db.drop_collection("Scoresheets")
-    db.create_collection("Players")
+    # db.create_collection("Players")
     db.create_collection("Toasts")
     db.create_collection("Scoresheets")
     db["Toasts"].insert_many([

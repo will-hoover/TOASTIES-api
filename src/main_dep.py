@@ -1,5 +1,7 @@
 """
 API for requests from the TOASTIES.
+
+THIS FILE IS A PREVIOUS VERSION AND CURRENTLY DEPRECATED
 """
 
 from typing import Annotated
