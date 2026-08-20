@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response
+from typing import Literal
 import uvicorn
 
 import services.toasties_service as toasties
@@ -30,34 +31,35 @@ async def start_toast(toast: Toast, response: Response):
     response.status_code = 201
     return { "number": toast.number, "id": str(new_id) }
 
-@app.post("/end/{id}")
-async def finish_toast(id: str, response: Response):
+@app.post("/end")
+async def finish_toast(response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    code = await toasties.end_toast(id)
+    code = await toasties.end_toast()
     if code == -1:
-        raise HTTPException(409, "Specified toast is not currently live")
+        raise HTTPException(404, "Buttered Toast is not live")
     if code == 0:
         raise HTTPException(500, "Update failed")
+    response.status_code = 204
 
-@app.get("/rooms/{id}")
-async def rooms(id: str, response: Response):
+@app.get("/rooms")
+async def rooms(response: Response, toast: str | None = None):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    rooms = await toasties.get_rooms(id)
+    rooms = await toasties.get_rooms(toast)
     if rooms is None:
         raise HTTPException(404, "Toast des not exist")
     return {
         "rooms": rooms
     }
 
-@app.post("/addroom/{id}")
-async def addroom(id: str, response: Response):
+@app.post("/addroom")
+async def addroom(response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    code = await toasties.add_room(id)
+    code = await toasties.add_room()
     if code == -1:
-        raise HTTPException(409, "Cannot add a room to an archived Toast")
+        raise HTTPException(409, "Buttered Toast is not live")
     if code == 0:
         raise HTTPException(404, "Toast does not exist")
-    rooms = await toasties.get_rooms(id)
+    rooms = await toasties.get_rooms()
     return {
         "rooms": rooms
     }
@@ -73,17 +75,24 @@ async def add_scoresheet(results: Scoresheet, response: Response):
 @app.get("/stats/{room_number}")
 async def room_stats(room_number: int, response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    stats = await toasties.get_live_stats(room_number)
+    stats = await toasties.get_stats(room=room_number)
     if stats == None:
         raise HTTPException(404, "Buttered Toast is not live")
     return stats
 
+@app.get("/pantry/stats/{toast}")
 @app.get("/stats")
-async def combined_stats(response: Response):
+async def combined_stats(response: Response, toast: str | None = None):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    stats = await toasties.get_live_stats()
+    stats = await toasties.get_stats(toast=toast)
     if stats == None:
         raise HTTPException(404, "Buttered Toast is not live")
+    return stats
+
+@app.get("/pantry/stats")
+async def get_all_stats(content: Literal["Academic", "Trash"], response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    stats = await pantry.get_all_stats(content)
     return stats
 
 @app.get("/roster/{room}")
@@ -109,10 +118,22 @@ async def add_player(player: Player, response: Response):
     }
 
 @app.get("/pantry/players")
-async def get_players(response: Response, played_since: int | None = None):
+async def get_players(response: Response, since: int | None = None):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    players = await pantry.get_players(played_since)
+    players = await pantry.get_players(since)
     return players
+
+@app.get("/pantry/toasts")
+async def get_toasts(response: Response, content: Literal["Academic", "Trash"] | None = None):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    toasts = await pantry.get_toasts(content)
+    return toasts
+
+@app.get("/pantry/playerstats/{player}")
+async def get_player_stats(player: str, response: Response):
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    player_stats = await pantry.get_player_stats(player)
+    return player_stats
 
 if __name__ == "__main__":
     uvicorn.run("main:app", log_level="info", reload=True, host="localhost", port=8000)

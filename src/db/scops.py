@@ -71,3 +71,31 @@ async def get_last_scoresheet(toast: str, room: int):
     }
     result = await sc.find(filter).sort({"timestamp": -1}).limit(1).to_list()
     return result
+
+async def get_scoresheets_from_subset(subset: list[str]):
+    """
+    Retrieve all scoresheets from the provided toasts
+    """
+    sc = db[SCORESHEETS]
+    filter = {
+        "toast": {"$in": subset}
+    }
+    result = await sc.find(filter).to_list()
+    return result
+
+async def get_scoresheets_by_player(player: str, toasts: list[str] | None = None):
+    """
+    Get every scoresheet in which the specified player participated
+    """
+    sc = db[SCORESHEETS]
+    filter = {
+        "$or": [
+            {"roster": player},
+            {"reader": player},
+            {"writer": player}
+        ]
+    }
+    if toasts != None:
+        filter["toast"] = {"$in": toasts}
+    result = await sc.find(filter).to_list()
+    return result

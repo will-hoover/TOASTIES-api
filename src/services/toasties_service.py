@@ -24,35 +24,40 @@ async def get_live_toast():
     if live is not None:
         return Toast.model_validate(live)
 
-async def end_toast(id: str) -> int:
+async def end_toast() -> int:
     """
-    End the specified toast if it is live
+    End the current toast
     """
     live = await toastops.get_live_toast()
-    if live is None or id != Toast.model_validate(live).id:
+    if live is None:
         return -1
-    updated = await toastops.end_toast(id)
+    updated = await toastops.end_toast(Toast.model_validate(live).id)
     if updated:
         return 1
     return 0
 
-async def get_rooms(id: str) -> int:
+async def get_rooms(id: str | None = None) -> int:
     """
     Get the number of rooms for the specified toast
     """
+    if id is None:
+        live = await toastops.get_live_toast()
+        if live is None:
+                return None
+        id = Toast.model_validate(live).id
     result = await toastops.get_rooms(id)
     if len(result) == 0:
         return None
     return result[0]['rooms']
 
-async def add_room(id: str) -> int:
+async def add_room() -> int:
     """
     Add a room to the specified toast
     """
     live = await toastops.get_live_toast()
-    if live is None or id != Toast.model_validate(live).id:
+    if live is None:
         return -1
-    updated = await toastops.add_room(id)
+    updated = await toastops.add_room(Toast.model_validate(live).id)
     if updated:
         return 1
     return 0
@@ -73,16 +78,17 @@ async def add_scoresheet(scoresheet: Scoresheet) -> int:
         return 0
     return 1
 
-async def get_live_stats(room: int | None = None):
+async def get_stats(toast: str | None = None, room: int | None = None):
     """
     Obtain a live stats report
     """
-    live = await toastops.get_live_toast()
-    if live is None:
-            return None
+    if toast == None:
+        live = await toastops.get_live_toast()
+        if live is None:
+                return None
+        toast = Toast.model_validate(live).id
 
-    id = Toast.model_validate(live).id
-    scoresheets = await scops.get_scoresheets_by_toast(id, room)
+    scoresheets = await scops.get_scoresheets_by_toast(toast, room)
     if len(scoresheets) == 0:
         return dict()
     for i in range(len(scoresheets)):
