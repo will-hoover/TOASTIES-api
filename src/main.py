@@ -31,34 +31,35 @@ async def start_toast(toast: Toast, response: Response):
     response.status_code = 201
     return { "number": toast.number, "id": str(new_id) }
 
-@app.post("/end/{id}")
-async def finish_toast(id: str, response: Response):
+@app.post("/end")
+async def finish_toast(response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    code = await toasties.end_toast(id)
+    code = await toasties.end_toast()
     if code == -1:
-        raise HTTPException(409, "Specified toast is not currently live")
+        raise HTTPException(404, "Buttered Toast is not live")
     if code == 0:
         raise HTTPException(500, "Update failed")
+    response.status_code = 204
 
-@app.get("/rooms/{id}")
-async def rooms(id: str, response: Response):
+@app.get("/rooms")
+async def rooms(response: Response, toast: str | None = None):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    rooms = await toasties.get_rooms(id)
+    rooms = await toasties.get_rooms(toast)
     if rooms is None:
         raise HTTPException(404, "Toast des not exist")
     return {
         "rooms": rooms
     }
 
-@app.post("/addroom/{id}")
-async def addroom(id: str, response: Response):
+@app.post("/addroom")
+async def addroom(response: Response):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    code = await toasties.add_room(id)
+    code = await toasties.add_room()
     if code == -1:
-        raise HTTPException(409, "Cannot add a room to an archived Toast")
+        raise HTTPException(409, "Buttered Toast is not live")
     if code == 0:
         raise HTTPException(404, "Toast does not exist")
-    rooms = await toasties.get_rooms(id)
+    rooms = await toasties.get_rooms()
     return {
         "rooms": rooms
     }
@@ -117,9 +118,9 @@ async def add_player(player: Player, response: Response):
     }
 
 @app.get("/pantry/players")
-async def get_players(response: Response, played_since: int | None = None):
+async def get_players(response: Response, since: int | None = None):
     response.headers['Access-Control-Allow-Origin'] = "*"
-    players = await pantry.get_players(played_since)
+    players = await pantry.get_players(since)
     return players
 
 @app.get("/pantry/toasts")

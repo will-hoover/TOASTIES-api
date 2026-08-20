@@ -58,7 +58,10 @@ def compile_stats(scoresheets: list[Scoresheet]):
         else:
             stat_dict[s.writer] = pack_stats
 
-    return {key: stat_dict[key].sorted_stats() for key in stat_dict}
+    return [{
+        "writer": key,
+        "stats": stat_dict[key].sorted_stats()
+    } for key in stat_dict]
 
 def player_stats(player: str, scoresheets: list[Scoresheet]):
     """
@@ -75,6 +78,9 @@ def player_stats(player: str, scoresheets: list[Scoresheet]):
     for toast in stat_dict:
         overall.add_stats(stat_dict[toast])
     stat_dict["Overall"] = overall
-    return stat_dict
+    return [{
+        "toast": key,
+        "stats": stat_dict[key]
+    } for key in stat_dict]
     
         
