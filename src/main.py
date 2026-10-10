@@ -20,6 +20,7 @@ async def current_toast(response: Response):
     current = await toasties.get_live_toast()
     if current is None:
         raise HTTPException(404, "Buttered Toast is not live. Please start a Toast.", headers=response.headers)
+    current = current.model_dump(by_alias=False)
     return current
 
 @app.post("/start")

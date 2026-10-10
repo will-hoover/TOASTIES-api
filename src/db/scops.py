@@ -37,9 +37,10 @@ async def update_scoresheet(id: ObjectId, s: Scoresheet):
     Update certain scoresheet metadata at the given id
     """
     sc = db[SCORESHEETS]
+    s = s.model_dump(by_alias=True, exclude_none=True)
     result = await sc.update_one(
             {"_id": id},
-            {"$set": {"questions": s.questions}}
+            {"$set": {"questions": s["questions"]}}
         )
     return result.matched_count
 
