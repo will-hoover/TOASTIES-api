@@ -37,16 +37,17 @@ async def update_scoresheet(id: ObjectId, s: Scoresheet):
     Update certain scoresheet metadata at the given id
     """
     sc = db[SCORESHEETS]
+    s = s.model_dump(by_alias=True, exclude_none=True)
     result = await sc.update_one(
             {"_id": id},
-            {"$set": {"questions": s.questions}}
+            {"$set": {"questions": s["questions"]}}
         )
     return result.matched_count
 
 async def get_scoresheets_by_toast(
     toast: str | None = None, 
     room: int | None = None
-):
+) -> list:
     """
     Retrieve all scoresheets filtered by the specified toast and room if provided.
     """
@@ -70,4 +71,32 @@ async def get_last_scoresheet(toast: str, room: int):
         "room": room
     }
     result = await sc.find(filter).sort({"timestamp": -1}).limit(1).to_list()
+    return result
+
+async def get_scoresheets_from_subset(subset: list[str]):
+    """
+    Retrieve all scoresheets from the provided toasts
+    """
+    sc = db[SCORESHEETS]
+    filter = {
+        "toast": {"$in": subset}
+    }
+    result = await sc.find(filter).to_list()
+    return result
+
+async def get_scoresheets_by_player(player: str, toasts: list[str] | None = None):
+    """
+    Get every scoresheet in which the specified player participated
+    """
+    sc = db[SCORESHEETS]
+    filter = {
+        "$or": [
+            {"roster": player},
+            {"reader": player},
+            {"writer": player}
+        ]
+    }
+    if toasts != None:
+        filter["toast"] = {"$in": toasts}
+    result = await sc.find(filter).to_list()
     return result
