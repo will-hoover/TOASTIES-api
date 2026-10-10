@@ -46,7 +46,7 @@ async def update_scoresheet(id: ObjectId, s: Scoresheet):
 async def get_scoresheets_by_toast(
     toast: str | None = None, 
     room: int | None = None
-):
+) -> list:
     """
     Retrieve all scoresheets filtered by the specified toast and room if provided.
     """

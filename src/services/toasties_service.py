@@ -8,9 +8,12 @@ async def start_toast(toast: Toast):
     """
     Start the next toast for trash or academic day
     """
+    live = await toastops.get_live_toast()
+    if live is not None:
+        return -1
     last_toast = await toastops.get_last_toast(toast.content)
     if toast.number != None and toast.number <= last_toast[0]["lastNum"]:
-        return -1
+        return -2
     toast.date = datetime.datetime.now()
     toast.live = True
     id = await toastops.insert_toast(toast)
@@ -90,7 +93,7 @@ async def get_stats(toast: str | None = None, room: int | None = None):
 
     scoresheets = await scops.get_scoresheets_by_toast(toast, room)
     if len(scoresheets) == 0:
-        return dict()
+        return []
     for i in range(len(scoresheets)):
         scoresheets[i] = Scoresheet.model_validate(scoresheets[i])
     return anal.compile_stats(scoresheets)
